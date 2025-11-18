@@ -3,12 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <title>Log In Page</title>
+
+    <style>
+        .failed{
+            color: red;
+        }
+        .success{
+            color: green;
+        }
+    </style>
 </head>
 <body>
 
 <h3>Log in to use To-Do Master</h3>
 
 <form action="#" th:action="@{/authenticateTheUser}" method="POST">
+    <div th:if="${param.error}">
+        <i class="failed">Username/Password you entered are incorrect</i>
+    </div>
+    <div th:if="${param.logout}">
+        <i class="success">You have successfully logged out</i>
+    </div>
 
     <p>
         Username:<input type="text" name="username"/>

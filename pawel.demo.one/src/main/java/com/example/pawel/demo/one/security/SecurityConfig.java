@@ -30,6 +30,9 @@ public class SecurityConfig {
                         .loginPage("/myLoginPage")
                         .loginProcessingUrl("/authenticateTheUser")
                         .permitAll()
+        ).logout(
+                logout -> logout
+                        .permitAll()
         );
 
         return http.build();
