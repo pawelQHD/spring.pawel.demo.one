@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Log In Page</title>
+</head>
+<body>
+
+<h3>Log in to use To-Do Master</h3>
+
+<form action="#" th:action="@{/authenticateTheUser}" method="POST">
+
+    <p>
+        Username:<input type="text" name="username"/>
+    </p>
+
+    <p>
+        Password:<input type="password" name="password">
+    </p>
+
+    <input type="submit" value="Login"/>
+
+</form>
+
+</body>
+</html>

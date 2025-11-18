@@ -11,4 +11,10 @@ public class SelfTestController {
 
         return "index.html";
     }
+
+    @GetMapping("/myLoginPage")
+    public String myLoginPage(){
+
+        return "login-page.html";
+    }
 }
