@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+                xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Self Test One</title>
@@ -7,6 +8,15 @@
 <body>
 
 <h3>Welcome to these humble beginnings</h3>
+<hr>
+
+<div style="display: flex; gap: 10px;">
+    <a th:href="@{/addTask}" >
+        <button type="button">Add task</button>
+    </a><a sec:authorize="hasRole('ADMIN')" th:href="@{/userList}" >
+        <button type="button">Users</button>
+    </a>
+</div>
 
 <hr>
 

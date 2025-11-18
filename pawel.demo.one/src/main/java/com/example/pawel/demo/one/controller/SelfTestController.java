@@ -17,4 +17,16 @@ public class SelfTestController {
 
         return "login-page.html";
     }
+
+    @GetMapping("/userList")
+    public String userList(){
+
+        return "user-list.html";
+    }
+
+    @GetMapping("/addTask")
+    public String addTask(){
+
+        return "add-task.html";
+    }
 }
