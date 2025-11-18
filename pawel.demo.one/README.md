@@ -7,7 +7,7 @@ You will be able to complete the tasks and set deadlines for them as well as cre
 
 ### **Beginning**
 
-Go to start.spring.io and setup the project as following:
+Go to start.spring.io and set up the project as following:
 ```
 Project - Maven
 Language - Java
@@ -130,13 +130,13 @@ private List<Task> tasks;
 ```
 The above code is what Users.java looks like. There are few notable mentions in this file.
 
-```@Column(name="username", nullable = false, unique = true)``` this part of the code tells Spring that username cannot be left as null and it has to be unique. We can’t have users with the same username as that would cause issues with identifying them.
+```@Column(name="username", nullable = false, unique = true)``` this part of the code tells Spring that username cannot be left as null, and it has to be unique. We can’t have users with the same username as that would cause issues with identifying them.
 
 ``` @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)``` This means that one user can have many different tasks assigned to it. 
 
-This also creates a list of tasks, which will be very handy when displaying them. mappedBy=”user” tells JPA who owns this relationship. 
+This also creates a list of tasks, which will be very handy when displaying them. ```mappedBy=”user”``` tells JPA who owns this relationship. 
 
-In this case the user owns the list of tasks. cascade = CascadeType.ALL tells Spring what to do with the tasks when the user performs an action. 
+In this case the user owns the list of tasks. cascade = CascadeType. ALL tells Spring what to do with the tasks when the user performs an action. 
 
 The ``` .ALL``` means that the tasks get updated with any action that the user performs.
 ```java
@@ -192,11 +192,11 @@ public class Task {
 // Constructions, getters and setters
 }
 ```
-```@Column(name="description", columnDefinition = "TEXT")``` Is a way to go around the 255 character limit inside the database. This way we know we can go for a much longer String without any issues when we are trying to save it inside the database.
+```@Column(name="description", columnDefinition = "TEXT")``` Is a way to go around the 255-character limit inside the database. This way we know we can go for a much longer String without any issues when we are trying to save it inside the database.
 
 ```@ManyToOne``` means that many tasks can be owned by a single user. Every task must be linked to a single user. No two users can have the same task.
 
-```@JoinColumn(name="user_id", nullable = false)``` The Foreign key is the user_id and we specify it here. This field inside the database will tell us which user owns a task. This also means that we cannot leave this field blank.
+```@JoinColumn(name="user_id", nullable = false)``` The Foreign key is the user_id, and we specify it here. This field inside the database will tell us which user owns a task. This also means that we cannot leave this field blank.
 
 ### **Authorities table**
 
@@ -300,7 +300,7 @@ The second part of this bean defines how login is handled
 
 ```loginProcessingUrl("/authenticateTheUser")``` is where Spring intercepts the login and checks if the credentials are accurate.
 
-```permitAll()``` means that everyone can access the log in page. Without this, users that are not authenticated, will not be able to log in as they wouldn’t have access to log in page.
+```permitAll()``` means that everyone can access the login page. Without this, users that are not authenticated, will not be able to log in as they wouldn’t have access to log in page.
 
 ### **Custom login page**
 ```java
