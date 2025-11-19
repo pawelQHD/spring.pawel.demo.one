@@ -74,6 +74,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Below is needed for basic validation to make sure username and password are not empty -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>

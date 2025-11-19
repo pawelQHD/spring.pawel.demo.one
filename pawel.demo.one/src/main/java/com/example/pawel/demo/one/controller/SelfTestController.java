@@ -29,4 +29,10 @@ public class SelfTestController {
 
         return "add-task.html";
     }
+
+    @GetMapping("/userRegistrationForm")
+    public String userRegistrationForm(){
+
+        return "user-registration-form.html";
+    }
 }

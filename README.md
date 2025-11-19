@@ -1,11 +1,28 @@
 # Project development documentation
 
-### **Description**
+### Document Description
+
+This document serves as a project journal. It is there to help me understand and learn.
+
+This project lets me practice everything I have learned about Spring Boot so far.
+
+For this reason, it's not focused on functionality as much as a starting point for future project.
+
+In the future I can go back to this project and review all the things I've learned but might have forgotten
+
+That's why this project is more of a documentation of my work rather than a project that's usable.
+
+### Project Description
 
 The idea behind this project is to create a very simple to-do task tracker. 
-You will be able to complete the tasks and set deadlines for them as well as create priorities and set categories for the tasks.
 
-### **Beginning**
+You will be able to create, update, delete and complete the tasks and set deadlines for them.
+
+Additional features include creating priorities and set categories for the tasks.
+
+This project takes function over design approach, for this reason I will not make anything that looks good, that will be reserved for future projects.
+
+### Beginning
 
 Go to start.spring.io and set up the project as following:
 ```
@@ -19,7 +36,7 @@ Java - 21
 Dependencies - Spring Web, Thymeleaf, Spring Security, Spring Boot DevTools
 I also missed adding: Spring Data JPA and MySQL Driver and had to add the manually later.
 ```
-Save the file in a directory (99-pawels-self-testing-projects) and launch InteliJ.
+Save the file in a directory (99-pawels-self-testing-projects) and launch IntelliJ.
 
 Go into Settings -> Build, Execution, Deployment -> Build project automatically. This allows DevTools to work and automatically re-build projects.
 
@@ -40,7 +57,7 @@ public String selfTestHomepage(){
 }
 }
 ```
-### **Database setup**
+### Database setup
 
 The below code uses an .sql file to create a database as well as the table structure:
 ```sql
@@ -87,7 +104,7 @@ INDEX `idx_completed` (`completed`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 ```
 
-### **Creating Users.java and Task.java**
+### Creating Users.java and Task.java
 
 ```java
 @Entity
@@ -198,7 +215,7 @@ public class Task {
 
 ```@JoinColumn(name="user_id", nullable = false)``` The Foreign key is the user_id, and we specify it here. This field inside the database will tell us which user owns a task. This also means that we cannot leave this field blank.
 
-### **Authorities table**
+### Authorities table
 
 Below code is what I used to generate authorities and insert two sample users into the database:
 ```sql
@@ -246,7 +263,7 @@ VALUES
 ('pawel','ROLE_ADMIN');
 ```
 
-### **@Configuration class**
+### @Configuration class
 ```java
 @Configuration
 public class SecurityConfig {
@@ -302,7 +319,7 @@ The second part of this bean defines how login is handled
 
 ```permitAll()``` means that everyone can access the login page. Without this, users that are not authenticated, will not be able to log in as they wouldn’t have access to log in page.
 
-### **Custom login page**
+### Custom login page
 ```java
 @GetMapping("/myLoginPage")
 public String myLoginPage(){
@@ -349,7 +366,7 @@ The above code had to be added inside the SelfTestController class. This allows 
 ```
 Above code is the login-page.html which completes the custom login form.
 
-### **Logout button**
+### Logout button
 
 We need to add the following code inside our HTML to insert the login button:
 ```html
@@ -383,7 +400,7 @@ return http.build();
 ```
 In the above code we only need to add the .logout section of the code.
 
-### **Adding buttons to other pages**
+### Adding buttons to other pages
 
 The following code is added to support two buttons. These buttons have two different permission levels.
 
@@ -410,3 +427,259 @@ public String userList(){
 return "user-list.html";
 }
 ```
+### User Registration page
+
+There is a lot of groundwork needed in order to register new users inside the database.
+
+This section will focus on the first part that will just display the registration form, without pushing it to the database.
+
+```java
+@NotNull(message = "is required")
+@Size(min=1, message = "is required")
+@Column(name="password", nullable = false)
+private String password;
+```
+
+The above code was added to both userName and password fields.
+
+This will be used later for validating and I should probably include the very same validation when signing users in.
+
+```java
+public interface UserRepository extends JpaRepository<User, Integer> {
+
+    User findByUserName(String userName);
+}
+```
+The above code uses JpaRepository. It's used for common database queries.
+
+All you need to do is plug in the Entity type as well as the id (most commonly Integer).
+
+I believe that the id is read from the Entity type using the @Id tag, but have not confirmed it.
+
+```java
+public interface UserService {
+
+    public User findByUserName(String userName);
+}
+```
+
+The above code is an interface that I have created. This is part of the guide that I followed.
+
+The guide is a simple PDF without much information so there is not as much detail in it.
+
+Later on the findByUserName method will be needed and this is why we had to implement it.
+
+```java
+@Service
+public class UserServiceImpl implements UserService{
+
+    private UserRepository userRepository;
+
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public User findByUserName(String userName) {
+        return userRepository.findByUserName(userName);
+    }
+}
+```
+
+I really like how the above code is implemented. We have the interface and the implementation class.
+
+This way we can always change our implementation class without many changes to the code. This makes it more maintainable.
+
+We also take advantage of our UserRepository from earlier.
+
+```java
+@Component
+public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+
+    private UserService userService;
+
+    @Autowired
+    public CustomAuthenticationSuccessHandler(UserService theUserService){
+        userService = theUserService;
+    }
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException, ServletException {
+
+        System.out.println("In customAuthenticationSuccessHandler");
+        String userName = authentication.getName();
+        System.out.println("userName=" + userName);
+        User theUser = userService.findByUserName(userName);
+
+        HttpSession session = request.getSession();
+        session.setAttribute("user", theUser);
+
+        response.sendRedirect(request.getContextPath() + "/");
+    }
+}
+```
+
+Above code is part of SpringSecurity. To my knowledge, this code runs when user successfully authenticates.
+
+I will verify it once I manage to get the user logged it, as we are moving to bcrypt encryption soon.
+
+```java
+
+@Configuration
+public class SecurityConfig {
+
+    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+    @Autowired
+    public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
+        this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
+    }
+
+
+    @Bean
+    public UserDetailsManager userDetailsManager(DataSource dataSource) {
+
+        return new JdbcUserDetailsManager(dataSource);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http.authorizeHttpRequests(
+                configurer -> configurer
+                        .requestMatchers("/register/**").permitAll()
+                        .anyRequest()
+                        .authenticated()
+        ).formLogin(
+                form -> form
+                        .loginPage("/myLoginPage")
+                        .loginProcessingUrl("/authenticateTheUser")
+                        .successHandler(customAuthenticationSuccessHandler)
+                        .permitAll()
+        ).logout(
+                logout -> logout
+                        .permitAll()
+        );
+
+        return http.build();
+    }
+
+    /*
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider(UserService userService){
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+        auth.setUserDetailsService(userService);
+        auth.setPasswordEncoder(passwordEncoder());
+        return auth;
+    }
+    */
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+The above code caused me the most issues. There are few reasons for it.
+
+It contains commented out code which is not included inside this project. I left it here for reference.
+
+The reason I had to remove this code was because one of the methods is now deprecated.
+
+I then found out that JdbcUserDetailsManager is a better way to handle it, and it's something I already had.
+
+Another reason I had a lot of issues with it was because of ```.requestMatchers("/register/**").permitAll()```
+
+I missed it from the guide I was using and I could not click on the new user registration link.
+
+Turns out it's important, and it was not highlighted in the guide I used. Another reason why this journal is useful.
+
+```java
+@Controller
+@RequestMapping("/register")
+public class RegistrationController {
+
+    private UserService userService;
+
+    @Autowired
+    public RegistrationController(UserService userService){
+        this.userService = userService;
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder dataBinder){
+
+        StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);
+        dataBinder.registerCustomEditor(String.class, stringTrimmerEditor);
+    }
+
+    @GetMapping("/showRegistrationForm")
+    public String showMyLoginPage(Model theModel){
+
+        theModel.addAttribute("user", new User());
+
+        return "register/userRegistrationForm";
+    }
+}
+```
+
+The last piece of code is not finished, but I decided it was a good place for a commit.
+
+This code handles all the relevant mappings that are used for the registration form and creating new users.
+
+All that's missing now is adding users to the database and testing it all out.
+
+```html
+    <a th:href="@{/register/showRegistrationForm}">
+        Register new user
+    </a>
+```
+The above HTML code was added to the login-page. It's a simple link a user can click if they are not registered yet.
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New User Registration</title>
+</head>
+<body>
+
+<h3>New User Registration</h3>
+<hr>
+<form action="#" th:action="@{/register/processRegistrationForm}"
+    th:object="${user}"
+    method="Post">
+
+    <div th:if="${param.registrationError}">
+        <span th:text="${param.registrationError}"></span>
+    </div>
+
+    <p>
+        Username* <input type="text" th:field="*{userName}">
+    </p>
+
+    <p>
+        Password* <input type="text" th:field="*{password}">
+    </p>
+
+    <p>
+        <button type="submit">Register</button>
+    </p>
+
+    <a th:href="@{/}">
+        <button type="button">Back</button>
+    </a>
+    
+</form>
+</body>
+</html>
+```
+The last piece of code for this section was the actual registration form.
+
+It's still not finished as we need to add email field, this will be done in the next section.

@@ -1,6 +1,8 @@
 package com.example.pawel.demo.one.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,12 +16,18 @@ public class User {
     @Column(name="id")
     private int id;
 
+    @NotNull(message = "is required")
+    @Size(min=1, message = "is required")
     @Column(name="username", nullable = false, unique = true)
-    private String username;
+    private String userName;
 
+    @NotNull(message = "is required")
+    @Size(min=1, message = "is required")
     @Column(name="password", nullable = false)
     private String password;
 
+    @NotNull(message = "is required")
+    @Size(min=1, message = "is required")
     @Column(name="email")
     private String email;
 
@@ -36,18 +44,18 @@ public class User {
 
     }
 
-    public User(String username, String password, String email) {
-        this.username = username;
+    public User(String userName, String password, String email) {
+        this.userName = userName;
         this.password = password;
         this.email = email;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPassword() {
@@ -93,7 +101,7 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "username='" + username + '\'' +
+                "username='" + userName + '\'' +
                 ", email='" + email + '\'' +
                 ", enabled=" + enabled +
                 ", createdAt=" + createdAt +
