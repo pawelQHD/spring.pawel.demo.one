@@ -683,3 +683,268 @@ The above HTML code was added to the login-page. It's a simple link a user can c
 The last piece of code for this section was the actual registration form.
 
 It's still not finished as we need to add email field, this will be done in the next section.
+
+### User Registration page - part 2
+
+This next part focuses on finishing the last part and actually adding the user to the database.
+
+For this I have realised my database setup wasn't set up correctly, and I had to change it.
+
+The first mistake was that id needed to be included inside the authority table.
+
+This was needed because I had to create Authority class which is the code below:
+
+```java
+package com.example.pawel.demo.one.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name="authorities")
+public class Authority {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(name="username", nullable = false)
+    private String userName;
+
+    @Column(name="authority", nullable = false)
+    private String authority;
+    
+    // constructors, getters and setters
+}
+```
+
+I had to delete all the database tables and start from scratch. I'm very glad I kept my .sql scripts with the project.
+
+The other mistake I made was with the length of password. I think initially it was set up as 100, we don't need it this long.
+
+ByCrypt uses 60 characters for its password and the prefix is 8 characters that covers {noop} and {bcrypt}.
+
+Turns out I didn't need to have the prefix. I have to figure out why, but from my research I can see that the guide I followed expects BCrypt as default.
+
+So there is no need to specify it. I think in the course I followed they used default implementations and the guide I followed for this section is a bit more custom.
+
+```java
+    @PostMapping("/processRegistrationForm")
+    public String processRegistrationForm(
+            @Valid @ModelAttribute("user") User theUser,
+            BindingResult theBindingResult,
+            HttpSession session,
+            Model theModel
+    ){
+
+        String userName = theUser.getUserName();
+
+        if(theBindingResult.hasErrors()){
+            return "register/registration-form";
+        }
+
+        User existing = userService.findByUserName(userName);
+        if(existing != null){
+            theModel.addAttribute("user", new User());
+            theModel.addAttribute("registrationError",
+                    "User name already exists.");
+            return "register/registration-form";
+        }
+
+        userService.save(theUser);
+        session.setAttribute("user", theUser);
+
+        return "register/registration-confirmation";
+    }
+```
+
+The above code was added to the RegistrationController. This code checks if there are any errors, then checks if the user is already in the database.
+
+Then it actually saves the user using our brand-new method inside the UserServiceImpl.
+
+```java
+public interface UserService {
+
+    public User findByUserName(String userName);
+
+    void save(User user);
+}
+```
+
+The above code is the updated UserService interface. The below code is the actual implementation of the save method:
+
+```java
+    @Override
+    public void save(User theUser) {
+
+        User user = new User();
+        Authority authority = new Authority();
+
+        user.setUserName(theUser.getUserName());
+        user.setPassword(passwordEncoder.encode(theUser.getPassword()));
+        user.setEmail(theUser.getEmail());
+        user.setCreatedAt(LocalDateTime.now());
+
+        authority.setUserName(theUser.getUserName());
+        authority.setAuthority("ROLE_USER");
+
+        userRepository.save(user);
+        authorityRepository.save(authority);
+    }
+```
+
+This save method is what caused me to change the database structure I mentioned earlier.
+
+We have to assign new users with a role in order for them to log in. Adding Id made it easier as I was able to create Authority Repository:
+
+```java
+public interface AuthorityRepository extends JpaRepository<Authority, Integer> {
+    List<Authority> findByUserName(String username);
+}
+```
+
+There was a small change inside SecurityConfig. I had to change the way one of the beans was injected to fix circular dependency.
+
+```java
+@Configuration
+public class SecurityConfig {
+
+//    private CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+//
+//    @Autowired
+//    public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler){
+//        this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
+//    }
+
+
+    @Bean
+    public UserDetailsManager userDetailsManager(DataSource dataSource){
+
+        return new JdbcUserDetailsManager(dataSource);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) throws Exception{
+
+        http.authorizeHttpRequests(
+                configurer -> configurer
+                        .requestMatchers("/register/**").permitAll()
+                        .anyRequest()
+                        .authenticated()
+        ).formLogin(
+                form -> form
+                        .loginPage("/myLoginPage")
+                        .loginProcessingUrl("/authenticateTheUser")
+                        .successHandler(customAuthenticationSuccessHandler)
+                        .permitAll()
+        ).logout(
+                logout -> logout
+                        .permitAll()
+        );
+
+        return http.build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder(){
+
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+The easiest fix was to simply add is as a parameter to the method instead. Not sure if it's the best way to handle it, but it makes the software work.
+
+I also don't know any better for now and I hope I can learn how to handle circular dependencies in the future.
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New User Registration</title>
+</head>
+<body>
+
+<h3>New User Registration</h3>
+<hr>
+<form action="#" th:action="@{/register/processRegistrationForm}"
+    th:object="${user}"
+    method="Post">
+
+    <div th:if="${param.registrationError}">
+        <span th:text="${param.registrationError}"></span>
+    </div>
+
+    <p>
+        Username* <input type="text" th:field="*{userName}">
+    </p>
+    <div th:if="${#fields.hasErrors('userName')}">
+        <p th:each="err : ${#fields.errors('userName')}" th:text="'User name ' + ${err}"></p>
+    </div>
+
+    <p>
+        Password* <input type="text" th:field="*{password}">
+    </p>
+    <div th:if="${#fields.hasErrors('password')}">
+        <p th:each="err : ${#fields.errors('password')}" th:text="'Password ' + ${err}"></p>
+    </div>
+
+    <p>
+        Email* <input type="text" th:field="*{email}">
+    </p>
+    <div th:if="${#fields.hasErrors('email')}">
+        <p th:each="err : ${#fields.errors('email')}" th:text="'Email ' + ${err}"></p>
+    </div>
+
+    <p>
+        <button type="submit">Register</button>
+    </p>
+
+    <a th:href="@{/}">
+        <button type="button">Back</button>
+    </a>
+
+</form>
+</body>
+</html>
+```
+
+registration-form had to be changed a little bit to handle when the errors arise. There is still one bug remaining with it.
+
+When I create a user that already exists, it simply returns the registration page without giving any reason.
+
+I'm focusing more on the function over form, and it's a bug that is low on my priority list for the moment.
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Registered Successfully!</title>
+</head>
+<body>
+
+<h2>User registered successfully!</h2>
+
+<ul>
+    <li th:text="'User name: ' + ${user.userName}"></li>
+    <li th:text="'Email address: ' + ${user.email}"></li>
+</ul>
+
+<hr>
+
+<a th:href="@{/login-page}">Back to login page</a>
+
+</body>
+</html>
+```
+
+We also have very simple confirmation page when the user gets created, shown above.
+
+The last piece of information that I was missing to get it all to work is that the password needed to be all in bcrypt format without any prefix.
+
+I initially thought that I can use both {noop} and {bcrypt} at the same time but that is not the case.
+
+Also, the code I'm using does not support the prefix for the password, so I had to modify my database in order to get it working.
+
+Right now all it has is the 60 character bcrypt password and this works flawlessly.

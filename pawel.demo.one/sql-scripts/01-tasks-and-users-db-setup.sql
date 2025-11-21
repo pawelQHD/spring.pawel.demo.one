@@ -10,12 +10,20 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(50) NOT NULL UNIQUE,
-  `password` VARCHAR(255) NOT NULL,
+  `password` VARCHAR(60) NOT NULL,
   `email` VARCHAR(100) UNIQUE,
   `enabled` TINYINT(1) DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+
+--
+-- Setup basic testing users with password test123
+--
+INSERT INTO `users` (username, password, email)
+VALUES 
+('john',''$2a$10$Wnh0qMswjVYBDbtDiaM78.Cb3aFGv3maj8EW.H1cLd4.JlkbJNWaq','john@example.com'),
+('pawel','$2a$10$Wnh0qMswjVYBDbtDiaM78.Cb3aFGv3maj8EW.H1cLd4.JlkbJNWaq','pawel@example.com');
 
 --
 -- Table structure for table `tasks`

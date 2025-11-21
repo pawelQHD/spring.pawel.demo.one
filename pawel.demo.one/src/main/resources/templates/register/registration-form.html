@@ -19,10 +19,23 @@
     <p>
         Username* <input type="text" th:field="*{userName}">
     </p>
+    <div th:if="${#fields.hasErrors('userName')}">
+        <p th:each="err : ${#fields.errors('userName')}" th:text="'User name ' + ${err}"></p>
+    </div>
 
     <p>
         Password* <input type="text" th:field="*{password}">
     </p>
+    <div th:if="${#fields.hasErrors('password')}">
+        <p th:each="err : ${#fields.errors('password')}" th:text="'Password ' + ${err}"></p>
+    </div>
+
+    <p>
+        Email* <input type="text" th:field="*{email}">
+    </p>
+    <div th:if="${#fields.hasErrors('email')}">
+        <p th:each="err : ${#fields.errors('email')}" th:text="'Email ' + ${err}"></p>
+    </div>
 
     <p>
         <button type="submit">Register</button>

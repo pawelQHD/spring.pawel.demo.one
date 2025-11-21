@@ -28,7 +28,7 @@ public class User {
 
     @NotNull(message = "is required")
     @Size(min=1, message = "is required")
-    @Column(name="email")
+    @Column(name="email", nullable = false)
     private String email;
 
     @Column(name="enabled")
