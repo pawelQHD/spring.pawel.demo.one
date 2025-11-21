@@ -948,3 +948,80 @@ I initially thought that I can use both {noop} and {bcrypt} at the same time but
 Also, the code I'm using does not support the prefix for the password, so I had to modify my database in order to get it working.
 
 Right now all it has is the 60 character bcrypt password and this works flawlessly.
+
+### User registration form improvements
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>New User Registration</title>
+
+    <style>
+        .failed{
+            color : red;
+        }
+    </style>
+</head>
+<body>
+
+<h3>New User Registration</h3>
+<hr>
+<form action="#" th:action="@{/register/processRegistrationForm}"
+    th:object="${user}"
+    method="POST">
+
+    <div>
+        <label>Username*</label>
+        <input type="text" th:field="*{userName}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('userName')}"
+              th:each="err : ${#fields.errors('userName')}"
+              th:text="'User name ' + ${err}"></span>
+        <span class="failed"
+              th:if="${registrationError}"
+              th:text="${registrationError}"></span>
+    </div>
+<br>
+    <div>
+        <label>Password*</label>
+        <input type="text" th:field="*{password}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('password')}"
+              th:each="err : ${#fields.errors('password')}"
+              th:text="'Password ' + ${err}"></span>
+    </div>
+<br>
+    <div>
+        <label>Email*</label>
+        <input type="text" th:field="*{email}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('email')}"
+              th:each="err : ${#fields.errors('email')}"
+              th:text="'Email ' + ${err}"></span>
+    </div>
+
+    <p>
+        <button type="submit">Register</button>
+    </p>
+
+    <hr>
+
+    <a th:href="@{/}">
+        <button type="button">Back</button>
+    </a>
+
+</form>
+</body>
+</html>
+```
+
+The above code fixes and issue with the duplicate user message not displaying.
+
+The problem was that I was using param.registrationError which is incorrect for what I want to do.
+
+Simply using the registrationError fixed the issue. Using the param. searches for any errors inside URL.
+
+I also made some small UI improvements to make the form a bit clearer and easier to undertand.
+

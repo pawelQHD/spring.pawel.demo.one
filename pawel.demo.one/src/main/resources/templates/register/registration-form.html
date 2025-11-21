@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>New User Registration</title>
+
+    <style>
+        .failed{
+            color : red;
+        }
+    </style>
 </head>
 <body>
 
@@ -10,36 +16,43 @@
 <hr>
 <form action="#" th:action="@{/register/processRegistrationForm}"
     th:object="${user}"
-    method="Post">
+    method="POST">
 
-    <div th:if="${param.registrationError}">
-        <span th:text="${param.registrationError}"></span>
+    <div>
+        <label>Username*</label>
+        <input type="text" th:field="*{userName}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('userName')}"
+              th:each="err : ${#fields.errors('userName')}"
+              th:text="'User name ' + ${err}"></span>
+        <span class="failed"
+              th:if="${registrationError}"
+              th:text="${registrationError}"></span>
     </div>
-
-    <p>
-        Username* <input type="text" th:field="*{userName}">
-    </p>
-    <div th:if="${#fields.hasErrors('userName')}">
-        <p th:each="err : ${#fields.errors('userName')}" th:text="'User name ' + ${err}"></p>
+<br>
+    <div>
+        <label>Password*</label>
+        <input type="text" th:field="*{password}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('password')}"
+              th:each="err : ${#fields.errors('password')}"
+              th:text="'Password ' + ${err}"></span>
     </div>
-
-    <p>
-        Password* <input type="text" th:field="*{password}">
-    </p>
-    <div th:if="${#fields.hasErrors('password')}">
-        <p th:each="err : ${#fields.errors('password')}" th:text="'Password ' + ${err}"></p>
-    </div>
-
-    <p>
-        Email* <input type="text" th:field="*{email}">
-    </p>
-    <div th:if="${#fields.hasErrors('email')}">
-        <p th:each="err : ${#fields.errors('email')}" th:text="'Email ' + ${err}"></p>
+<br>
+    <div>
+        <label>Email*</label>
+        <input type="text" th:field="*{email}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('email')}"
+              th:each="err : ${#fields.errors('email')}"
+              th:text="'Email ' + ${err}"></span>
     </div>
 
     <p>
         <button type="submit">Register</button>
     </p>
+
+    <hr>
 
     <a th:href="@{/}">
         <button type="button">Back</button>
