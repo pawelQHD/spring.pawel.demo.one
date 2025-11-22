@@ -25,4 +25,4 @@ INSERT INTO `authorities` (username, authority)
 VALUES 
 ('john','ROLE_USER'),
 ('pawel','ROLE_USER'),
-('pawel','ROLE_ADMOIN');
+('pawel','ROLE_ADMIN');

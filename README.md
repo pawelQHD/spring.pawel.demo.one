@@ -1025,3 +1025,209 @@ Simply using the registrationError fixed the issue. Using the param. searches fo
 
 I also made some small UI improvements to make the form a bit clearer and easier to undertand.
 
+### Adding task
+
+This next part takes a bit of work, but it's very similar to the previous tasks. So it was easy to implement.
+
+I have split the Controllers into MainController and Task Controller
+
+```java
+@Controller
+public class MainController {
+
+    @GetMapping("/")
+    public String selfTestHomepage(){
+
+        return "index.html";
+    }
+
+    @GetMapping("/myLoginPage")
+    public String myLoginPage(){
+
+        return "login-page.html";
+    }
+
+    @GetMapping("/userList")
+    public String userList(){
+
+        return "user-list.html";
+    }
+}
+```
+
+The MainController contains all the generic mappings that did not belong into Registration and Task Controllers.
+
+```java
+@Controller
+@RequestMapping("/task")
+public class TaskController {
+
+    private TaskService taskService;
+
+    @Autowired
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
+    }
+
+    @GetMapping("/addTask")
+    public String addTask(Model theModel){
+
+        theModel.addAttribute("task", new Task());
+
+        return "task/add-task.html";
+    }
+    @PostMapping("/processNewTask")
+    public String processNewTask(
+            @Valid @ModelAttribute("task") Task theTask,
+            BindingResult theBindingResult,
+            HttpSession session,
+            Model theModel
+    ){
+
+        if(theBindingResult.hasErrors()){
+            return "task/add-task";
+        }
+
+        taskService.save(theTask);
+        session.setAttribute("task", theTask);
+
+        return "task/task-added-confirmation";
+    }
+}
+```
+
+The TaskController contain two task related mappings. I decided to split Registration and Task Controllers for organisation purposes.
+
+```java
+public interface TaskRepository extends JpaRepository<Task, Integer> {
+}
+```
+
+I also had to create TaskRepository that we will need later on. We now have Repositories for every entity.
+
+```java
+public interface TaskService {
+
+    void save(Task task);
+}
+```
+
+TaskService is needed to save the tasks.
+
+```java
+@Service
+public class TaskServiceImpl implements TaskService{
+
+    TaskRepository taskRepository;
+    UserService userService;
+
+    @Autowired
+    public TaskServiceImpl(TaskRepository taskRepository,
+                           UserService userService) {
+        this.taskRepository = taskRepository;
+        this.userService = userService;
+    }
+
+    @Override
+    public void save(Task theTask) {
+
+        Task task = new Task();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        task.setTitle(theTask.getTitle());
+        task.setDescription(theTask.getDescription());
+        task.setPriority(theTask.getPriority());
+        task.setCategory(theTask.getCategory());
+        task.setDueDate(theTask.getDueDate());
+        task.setCreatedAt(LocalDateTime.now());
+        task.setUpdatedAt(LocalDateTime.now());
+
+        task.setUser(userService.findByUserName(authentication.getName()));
+
+        taskRepository.save(task);
+    }
+}
+```
+
+TaskServiceImpl contains all the necessary methods for the Task entity. At the moment we only need the save() method.
+
+The biggest challenge with this method was to retrieve the username that was already logged in.
+
+Looking it up I found the following method:
+
+``` Authentication authentication = SecurityContextHolder.getContext().getAuthentication();```
+
+Using the Authentication turned out to be a challenge. Initially I used it similar to the ```userService```
+
+This was a mistake because the field was initialised too early, way before the user was logged in.
+
+Because of this the field was null and it took me a while to realise why it was null.
+
+I ended up moving this line of code right into the method. This way we will always retrieve the user when we need it instead of trying to make it available globally.
+
+```html
+<body>
+
+<h3>Add Task</h3>
+<hr>
+<form action="#" th:action="@{/task/processNewTask}"
+      th:object="${task}" method="POST">
+
+    <div>
+        <label>Title*</label>
+        <input type="text" th:field="*{title}">
+        <span class="failed"
+              th:if="${#fields.hasErrors('title')}"
+              th:each="err : ${#fields.errors('title')}"
+              th:text="'Title ' + ${err}"></span>
+    </div>
+    <br>
+    <div>
+        <label>Description</label>
+        <input type="text" th:field="*{description}">
+    </div>
+    <br>
+    <div>
+        <label>Priority</label>
+        <select th:field="*{priority}">
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEIDUM</option>
+            <option value="HIGH">HIGH</option>
+        </select>
+    </div>
+    <br>
+    <div>
+        <label>Category</label>
+        <input type="text" th:field="*{category}">
+    </div>
+    <br>
+    <div>
+        <label>Due date</label>
+        <input type="date" th:field="*{dueDate}">
+    </div>
+    <p>
+        <button type="submit">Add Task</button>
+    </p>
+</form>
+<hr>
+<a th:href="@{/}">
+    <button type="button">Back</button>
+</a>
+</body>
+```
+
+The above code is the add-task.html registration form. It uses dropdown menu and date picket, but other than that it's similar to what we have done before.
+
+```html
+<body>
+
+<h3>Task Added Successfully</h3>
+
+<a th:href="@{/}">
+    <button type="button">Back</button>
+</a>
+</body>
+```
+
+The above confirmation page is nothing fancy. I wanted to keep it simple and I can always add more functionality later.
+

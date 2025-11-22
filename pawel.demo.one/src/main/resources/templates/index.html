@@ -11,7 +11,7 @@
 <hr>
 
 <div style="display: flex; gap: 10px;">
-    <a th:href="@{/addTask}" >
+    <a th:href="@{/task/addTask}" >
         <button type="button">Add task</button>
     </a><a sec:authorize="hasRole('ADMIN')" th:href="@{/userList}" >
         <button type="button">Users</button>

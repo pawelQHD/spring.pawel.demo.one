@@ -4,7 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class SelfTestController {
+public class MainController {
 
     @GetMapping("/")
     public String selfTestHomepage(){
@@ -22,17 +22,5 @@ public class SelfTestController {
     public String userList(){
 
         return "user-list.html";
-    }
-
-    @GetMapping("/addTask")
-    public String addTask(){
-
-        return "add-task.html";
-    }
-
-    @GetMapping("/userRegistrationForm")
-    public String userRegistrationForm(){
-
-        return "user-registration-form.html";
     }
 }
