@@ -794,7 +794,7 @@ The above code is the updated UserService interface. The below code is the actua
 
 This save method is what caused me to change the database structure I mentioned earlier.
 
-We have to assign new users with a role in order for them to log in. Adding Id made it easier as I was able to create Authority Repository:
+We have to assign new users with a role in order for them to log in. Adding id made it easier as I was able to create Authority Repository:
 
 ```java
 public interface AuthorityRepository extends JpaRepository<Authority, Integer> {
@@ -1161,7 +1161,7 @@ Using the Authentication turned out to be a challenge. Initially I used it simil
 
 This was a mistake because the field was initialised too early, way before the user was logged in.
 
-Because of this the field was null and it took me a while to realise why it was null.
+Because of this the field was null, and it took me a while to realise why it was null.
 
 I ended up moving this line of code right into the method. This way we will always retrieve the user when we need it instead of trying to make it available globally.
 
@@ -1230,4 +1230,127 @@ The above code is the add-task.html registration form. It uses dropdown menu and
 ```
 
 The above confirmation page is nothing fancy. I wanted to keep it simple and I can always add more functionality later.
+
+### Main page task list
+
+In the last section we implemented a way to add a task. In this section we are simply displaying it.
+
+```java
+public interface TaskRepository extends JpaRepository<Task, Integer> {
+    List<Task> findByUserUserName(String userName);
+}
+```
+We start by implementing a new method inside the TaskRepository interface. This one took me a while to figure out.
+
+I did not realise I have to next the User inside the method name since the userName is not part of the Task entity.
+
+Initially my code did not work but once I implemented this simple change it started working.
+
+```java
+public interface TaskService {
+
+    void save(Task task);
+
+    List<Task> loadTaskFromUser();
+}
+```
+
+Next we update TaskService interface to lay foundation for our new method.
+
+```java
+    @Override
+    public List<Task> loadTaskFromUser() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        List<Task> userList = taskRepository.findByUserUserName(authentication.getName());
+
+        return userList;
+    }
+```
+
+In the above code we implement the method. This method is very simple. We make use of the Authentication inside the method again.
+
+We also return the list of tasks for the user that is currently logged in. This method is inside TaskServiceImpl class.
+
+```java
+    @GetMapping("/")
+    public String mainHomepage(Model theModel){
+
+        List<Task> userList = taskService.loadTaskFromUser();
+
+        theModel.addAttribute("tasks", userList);
+
+        return "index.html";
+    }
+```
+
+The above mapping is inside the MainController class. We use the method from the TaskService.
+
+The result from this method gets passed into the Model so that we can access it inside out Thymeleaf template.
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+                xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Self Test One</title>
+    <style>
+        th, td{
+            padding: 2px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<h3>Welcome to these humble beginnings</h3>
+<hr>
+<div style="display: flex; gap: 10px;">
+    <a th:href="@{/task/addTask}" >
+        <button type="button">Add task</button>
+    </a><a sec:authorize="hasRole('ADMIN')" th:href="@{/userList}" >
+        <button type="button">Users</button>
+    </a>
+</div>
+<br>
+<table style="border-collapse: collapse;">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th>Due date</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tempTask : ${tasks}">
+        <td th:text="${tempTask.title}"/>
+        <td th:text="${tempTask.description}"/>
+        <td th:text="${tempTask.priority}"/>
+        <td th:text="${tempTask.category}"/>
+        <td th:text="${tempTask.dueDate}"/>
+        <td>
+
+        </td>
+    </tr>
+    </tbody>
+</table>
+<hr>
+<form action="#" th:action="@{/logout}" method="POST">
+    <input type="submit" value="Logout">
+</form>
+</body>
+</html>
+```
+
+The above code is our Thymeleaf template for the main page. This is the page that is displayed when the user loggs in.
+
+I wanted to make something usable that can be upgraded in the future. So the design is simple.
+
+We simply loop through the users with the following code ```<tr th:each="tempTask : ${tasks}">```
+
+The ```tasks``` is what we named our Model variable inside the mainHomepage mapping: ```theModel.addAttribute("tasks", userList);```
 

@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TaskServiceImpl implements TaskService{
@@ -40,4 +41,16 @@ public class TaskServiceImpl implements TaskService{
 
         taskRepository.save(task);
     }
+
+    @Override
+    public List<Task> loadTaskFromUser() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        List<Task> userList = taskRepository.findByUserUserName(authentication.getName());
+
+        return userList;
+    }
+
+
 }

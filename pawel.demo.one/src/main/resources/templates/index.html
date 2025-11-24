@@ -4,12 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Self Test One</title>
+    <style>
+        th, td{
+            padding: 2px;
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
-
 <h3>Welcome to these humble beginnings</h3>
 <hr>
-
 <div style="display: flex; gap: 10px;">
     <a th:href="@{/task/addTask}" >
         <button type="button">Add task</button>
@@ -17,12 +21,34 @@
         <button type="button">Users</button>
     </a>
 </div>
+<br>
+<table style="border-collapse: collapse;">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th>Due date</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tempTask : ${tasks}">
+        <td th:text="${tempTask.title}"/>
+        <td th:text="${tempTask.description}"/>
+        <td th:text="${tempTask.priority}"/>
+        <td th:text="${tempTask.category}"/>
+        <td th:text="${tempTask.dueDate}"/>
+        <td>
 
+        </td>
+    </tr>
+    </tbody>
+</table>
 <hr>
-
 <form action="#" th:action="@{/logout}" method="POST">
     <input type="submit" value="Logout">
 </form>
-
 </body>
 </html>
