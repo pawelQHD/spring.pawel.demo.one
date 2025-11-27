@@ -1,6 +1,7 @@
 package com.example.pawel.demo.one.entity;
 
 import jakarta.persistence.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ public class Task {
     private String category;
 
     @Column(name="due_date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;
 
     @Column(name="created_at")
@@ -55,6 +57,14 @@ public class Task {
         this.dueDate = dueDate;
         this.updatedAt = updatedAt;
         this.user = user;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitle() {

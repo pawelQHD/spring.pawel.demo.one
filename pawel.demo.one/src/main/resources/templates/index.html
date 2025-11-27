@@ -41,7 +41,10 @@
         <td th:text="${tempTask.category}"/>
         <td th:text="${tempTask.dueDate}"/>
         <td>
+            <a th:href="@{/task/completeTask(taskId=${tempTask.id})}"
+            >Complete</a>
 
+            <a th:href="@{/task/updateTask(taskId=${tempTask.id})}">Update</a>
         </td>
     </tr>
     </tbody>

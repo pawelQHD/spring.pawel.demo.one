@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TaskServiceImpl implements TaskService{
@@ -26,20 +27,19 @@ public class TaskServiceImpl implements TaskService{
     @Override
     public void save(Task theTask) {
 
-        Task task = new Task();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        task.setTitle(theTask.getTitle());
-        task.setDescription(theTask.getDescription());
-        task.setPriority(theTask.getPriority());
-        task.setCategory(theTask.getCategory());
-        task.setDueDate(theTask.getDueDate());
-        task.setCreatedAt(LocalDateTime.now());
-        task.setUpdatedAt(LocalDateTime.now());
+        if (theTask.getCreatedAt() == null) {
+            theTask.setCreatedAt(LocalDateTime.now());
+        }
 
-        task.setUser(userService.findByUserName(authentication.getName()));
+        theTask.setUpdatedAt(LocalDateTime.now());
 
-        taskRepository.save(task);
+        if(theTask.getUser() == null){
+            theTask.setUser(userService.findByUserName(authentication.getName()));
+        }
+
+        taskRepository.save(theTask);
     }
 
     @Override
@@ -50,6 +50,22 @@ public class TaskServiceImpl implements TaskService{
         List<Task> userList = taskRepository.findByUserUserName(authentication.getName());
 
         return userList;
+    }
+
+    @Override
+    public Task findTask(int theId) {
+
+        Optional<Task> result = taskRepository.findById(theId);
+
+        Task theTask = null;
+
+        if(result.isPresent()){
+            theTask = result.get();
+        } else {
+            throw new RuntimeException("Did not find employee id - " + theId);
+        }
+
+        return theTask;
     }
 
 

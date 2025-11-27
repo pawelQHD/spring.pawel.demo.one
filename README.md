@@ -1354,3 +1354,120 @@ We simply loop through the users with the following code ```<tr th:each="tempTas
 
 The ```tasks``` is what we named our Model variable inside the mainHomepage mapping: ```theModel.addAttribute("tasks", userList);```
 
+### Updating tasks
+
+We start off by correcting a mistake. While making this change I realised that getters and setters for id are important.
+
+Because of this I have updated both the Task.java and User.java to have getter and setter for the id.
+
+```java
+    @GetMapping("/updateTask")
+    public String updateTask(@RequestParam("taskId") int theId, Model theModel){
+
+        Task theTask = taskService.findTask(theId);
+
+        theModel.addAttribute("task", theTask);
+
+        return "task/add-task";
+    }
+```
+
+In the above code we have created a mapping to update task. The way I am handling the id is through the parameter embedded inside URL.
+
+All we are doing here is simply retrieving the task with that id and passing it into modal.
+
+That way it will be available for us when we try and populate the fields inside the form.
+
+```java
+    Task findTask(int theId);
+```
+
+The above line is from TaskService.java as we need this method in our ```@GetMapping("/updateTask")``` mapping.
+
+```java
+    @Override
+    public Task findTask(int theId) {
+
+        Optional<Task> result = taskRepository.findById(theId);
+
+        Task theTask = null;
+
+        if(result.isPresent()){
+            theTask = result.get();
+        } else {
+            throw new RuntimeException("Did not find employee id - " + theId);
+        }
+
+        return theTask;
+    }
+```
+
+Above is the implementation of this method. We simply retrieve the task and return it.
+
+We throw an exception is it cannot be found. This is handled inside the TaskServiceImpl.java class.
+
+```java
+    @Override
+    public void save(Task theTask) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (theTask.getCreatedAt() == null) {
+            theTask.setCreatedAt(LocalDateTime.now());
+        }
+
+        theTask.setUpdatedAt(LocalDateTime.now());
+
+        if(theTask.getUser() == null){
+            theTask.setUser(userService.findByUserName(authentication.getName()));
+        }
+
+        taskRepository.save(theTask);
+    }
+```
+
+Still inside TaskServiceImpl.java, I have updated our method on saving the task. For one, it looks a lot cleaner.
+
+The second reason was to make it set the createdAt only if this attribute is null. We only want to set this value once.
+
+```html
+        <td>
+            <a th:href="@{/task/completeTask(taskId=${tempTask.id})}"
+            >Complete</a>
+
+            <a th:href="@{/task/updateTask(taskId=${tempTask.id})}">Update</a>
+        </td>
+```
+
+The above code in inside the index.html and this is where we added two buttons, one for Completing and one for updating the task.
+
+```html
+    <input type="hidden" th:field="*{id}">
+```
+
+The above code is all we need to make the form load back up with the data from the task that we want to update.
+
+```html
+    <button type="submit">Save Task</button>
+```
+
+For better readability I also changed the way text reads for the submit button on the add-task.html form.
+
+After all this I realised that everything is working except the due date field.
+
+It's not being populated. It is using HTML date picker and I have a feeling this could be the issue.
+
+```java
+    @Column(name="due_date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dueDate;
+```
+
+Turns out that the issue was the time format between HTML, Spring and MySQL database. All I had to do is add the above code (inside Task.java) for it to work.
+
+This was the perfect solution as MySQL stores dates in "yyyy-MM-dd" format and My local format is "dd-MM-yyy".
+
+Adding ```@DateTimeFormat(pattern = "yyyy-MM-dd")``` is the perfect solution as my browser pick up my local date format and spring maps it inside the databse.
+
+The last change was to change the confirmation page from ```<h3>Task Added Successfully</h3>``` to ```<h3>Task Saved Successfully</h3>```
+

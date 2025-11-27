@@ -11,6 +11,8 @@
 <form action="#" th:action="@{/task/processNewTask}"
       th:object="${task}" method="POST">
 
+    <input type="hidden" th:field="*{id}">
+
     <div>
         <label>Title*</label>
         <input type="text" th:field="*{title}">
@@ -44,7 +46,7 @@
         <input type="date" th:field="*{dueDate}">
     </div>
     <p>
-        <button type="submit">Add Task</button>
+        <button type="submit">Save Task</button>
     </p>
 </form>
 <hr>
