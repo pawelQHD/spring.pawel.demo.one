@@ -1471,3 +1471,227 @@ Adding ```@DateTimeFormat(pattern = "yyyy-MM-dd")``` is the perfect solution as 
 
 The last change was to change the confirmation page from ```<h3>Task Added Successfully</h3>``` to ```<h3>Task Saved Successfully</h3>```
 
+### Completing tasks
+
+What we want to do now is simply click on a button to complete our tasks. This way our list of tasks is not showing old irrelevant tasks.
+
+```java
+public interface TaskRepository extends JpaRepository<Task, Integer> {
+
+    List<Task> findByUserUserName(String userName);
+
+    List<Task> findByUserUserNameAndCompletedTrueOrderByUpdatedAtDesc(String userName);
+
+    List<Task> findByUserUserNameAndCompletedFalseOrderByPriorityDesc(String userName);
+}
+```
+
+We start with TaskRepository. I found this part the most interesting. I'm also very glad I chose this approach to develop my first app.
+
+What I have done is split the find Users by userName into two different methods.
+
+The first one returns the list of tasks where the completed field is set to true and orders it by the updatedAt field in descending order.
+
+The second is similar, but instead it returns a list of tasks where completed is set to false. It also orders it by Priority in descending order.
+
+This is great because we can split our index page to only contain tasks that are not yet completed.
+
+The completed-tasks page holds only archived tasks that have been completed already.
+
+```java
+public interface TaskService {
+
+    void save(Task task);
+
+    List<Task> loadCompletedTasksFromUser();
+
+    List<Task> loadActiveTasksFromUser();
+
+    Task findTask(int theId);
+}
+```
+
+First we had to update the methods inside the TaskService interface.
+
+```java
+    @Override
+    public List<Task> loadActiveTasksFromUser() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        List<Task> userList = taskRepository.findByUserUserNameAndCompletedFalseOrderByPriorityDesc(authentication.getName());
+
+        return userList;
+    }
+
+    @Override
+    public List<Task> loadCompletedTasksFromUser() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        List<Task> userList = taskRepository.findByUserUserNameAndCompletedTrueOrderByUpdatedAtDesc(authentication.getName());
+
+        return userList;
+    }
+```
+
+We then implement these two methods inside TaskServiceImpl
+
+```java
+    @GetMapping("/")
+    public String mainHomepage(Model theModel){
+
+        List<Task> userList = taskService.loadActiveTasksFromUser();
+
+        theModel.addAttribute("tasks", userList);
+
+        return "index.html";
+    }
+```
+
+We then had to update the mapping for the homepage. This way we are getting the tasks that are not yet completed only.
+
+The above code is inside the MainController Controller class.
+
+```java
+    @GetMapping("/completeTask")
+    public String completeTask(@RequestParam("taskId") int theId){
+
+        Task theTask = taskService.findTask(theId);
+
+        theTask.setCompleted(true);
+
+        taskService.save(theTask);
+
+        return "redirect:/";
+    }
+
+    @GetMapping("taskArchive")
+    public String taskArchive(Model theModel){
+
+        List<Task> tasks = taskService.loadCompletedTasksFromUser();
+
+        theModel.addAttribute("tasks", tasks);
+
+        return "task/completed-tasks";
+    }
+```
+
+The above mappings are inside the TaskController class.
+
+The taskArchive is updated to use the appropriate method to display only tasks that are completed.
+
+The CompleteTask simply maks the completed field to true and redirects us back to homepage.
+
+This mapping is done from homepage, this means that the page refreshes and the tasks disappears from our list.
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <title>Self Test One</title>
+    <style>
+        th, td{
+            padding: 2px;
+            border: 1px solid black;
+        }
+        td a{
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .button-fix{
+            display: flex;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<h3>Welcome to these humble beginnings</h3>
+<hr>
+<div class="button-fix">
+    <a th:href="@{/task/addTask}" >
+        <button type="button">Add task</button>
+    </a>
+    <a th:href="@{/task/taskArchive}" >
+        <button type="button">Completed Tasks</button>
+    </a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/userList}" >
+        <button type="button">Users</button>
+    </a>
+</div>
+```
+index.html received few visual changes for buttons. There is a bug when using button close to one another which creates a line in between.
+
+I used some CSS to correct that. Once again, I'm not here to make this app pretty, just good enough for it to work.
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Completed Tasks</title>
+    <style>
+        th, td{
+            padding: 2px;
+            border: 1px solid black;
+        }
+        td a{
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .button-fix{
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<h3>List of completed tasks</h3>
+<hr>
+<table style="border-collapse: collapse;">
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th>Due date</th>
+        <th>Completed date</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tempTask : ${tasks}">
+        <td th:text="${tempTask.title}"/>
+        <td th:text="${tempTask.description}"/>
+        <td th:text="${tempTask.priority}"/>
+        <td th:text="${tempTask.category}"/>
+        <td th:text="${tempTask.dueDate}"/>
+        <td th:text="${tempTask.updatedAt}"></td>
+        <td>
+            <a th:href="@{/task/bringBackTask(taskId=${tempTask.id})}">
+                <button type="button">Bring Back</button>
+            </a>
+
+            <a th:href="@{/task/deleteTask(taskId=${tempTask.id})}">
+                <button type="button">Delete</button>
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<hr>
+<a th:href="@{/}">
+    <button type="button">Back</button>
+</a>
+</body>
+</html>
+```
+
+The above completed-tasks.html page was created in order to display the completed tasks.
+
+It's pretty much the same as the index.html page with some small exceptions. Like not having add task button.
+
+The actions are also different, and we can either Bring back the task or delete it permanently.
+
+The code for those actions will be included in the next section.

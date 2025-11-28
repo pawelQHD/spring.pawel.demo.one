@@ -10,6 +10,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/task")
 public class TaskController {
@@ -47,8 +49,13 @@ public class TaskController {
     }
 
     @GetMapping("/completeTask")
-    public String completeTask(@RequestParam("taskId") int theId, Model model){
+    public String completeTask(@RequestParam("taskId") int theId){
 
+        Task theTask = taskService.findTask(theId);
+
+        theTask.setCompleted(true);
+
+        taskService.save(theTask);
 
         return "redirect:/";
     }
@@ -61,5 +68,15 @@ public class TaskController {
         theModel.addAttribute("task", theTask);
 
         return "task/add-task";
+    }
+
+    @GetMapping("taskArchive")
+    public String taskArchive(Model theModel){
+
+        List<Task> tasks = taskService.loadCompletedTasksFromUser();
+
+        theModel.addAttribute("tasks", tasks);
+
+        return "task/completed-tasks";
     }
 }

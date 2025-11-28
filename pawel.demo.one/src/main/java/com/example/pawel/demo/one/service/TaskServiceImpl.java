@@ -43,11 +43,21 @@ public class TaskServiceImpl implements TaskService{
     }
 
     @Override
-    public List<Task> loadTaskFromUser() {
+    public List<Task> loadActiveTasksFromUser() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        List<Task> userList = taskRepository.findByUserUserName(authentication.getName());
+        List<Task> userList = taskRepository.findByUserUserNameAndCompletedFalseOrderByPriorityDesc(authentication.getName());
+
+        return userList;
+    }
+
+    @Override
+    public List<Task> loadCompletedTasksFromUser() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        List<Task> userList = taskRepository.findByUserUserNameAndCompletedTrueOrderByUpdatedAtDesc(authentication.getName());
 
         return userList;
     }

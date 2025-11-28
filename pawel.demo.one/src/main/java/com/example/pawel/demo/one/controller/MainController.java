@@ -22,7 +22,7 @@ public class MainController {
     @GetMapping("/")
     public String mainHomepage(Model theModel){
 
-        List<Task> userList = taskService.loadTaskFromUser();
+        List<Task> userList = taskService.loadActiveTasksFromUser();
 
         theModel.addAttribute("tasks", userList);
 

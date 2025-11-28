@@ -8,7 +8,9 @@ public interface TaskService {
 
     void save(Task task);
 
-    List<Task> loadTaskFromUser();
+    List<Task> loadCompletedTasksFromUser();
+
+    List<Task> loadActiveTasksFromUser();
 
     Task findTask(int theId);
 }
