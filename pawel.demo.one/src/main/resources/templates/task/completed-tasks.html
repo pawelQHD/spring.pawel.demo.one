@@ -21,7 +21,10 @@
 <body>
 <h3>List of completed tasks</h3>
 <hr>
-<table style="border-collapse: collapse;">
+<div th:if="${tasks.isEmpty()}">
+    <p>No Tasks to display</p>
+</div>
+<table th:if="${!tasks.isEmpty()}" style="border-collapse: collapse;">
     <thead>
     <tr>
         <th>Title</th>

@@ -1695,3 +1695,47 @@ It's pretty much the same as the index.html page with some small exceptions. Lik
 The actions are also different, and we can either Bring back the task or delete it permanently.
 
 The code for those actions will be included in the next section.
+
+### Bring back tasks
+
+In this short update we added an ability to bring back the tasks from the completed screen into the pending screen.
+
+```java
+    @GetMapping("/bringBackTask")
+    public String bringBackTask(@RequestParam("taskId") int theId){
+
+        Task theTask = taskService.findTask(theId);
+
+        theTask.setCompleted(false);
+
+        taskService.save(theTask);
+
+        return "redirect:/task/taskArchive";
+    }
+```
+
+The above code is the mapping to make this happen. The code for the button was already implemented in the previous step.
+
+```html
+</div>
+<div th:if="${tasks.isEmpty()}">
+    <p>No pending tasks. Click on "Add task" to stay organised</p>
+</div>
+<div th:if="${!tasks.isEmpty()}">
+<br>
+<table style="border-collapse: collapse;">
+```
+
+The above code is a visual improvement. When there is no pending tasks we are displaying a short message and hiding the table.
+
+When there are pending tasks, we are hiding the message and displaying the tasks instead.
+
+```html
+<div th:if="${tasks.isEmpty()}">
+    <p>No Tasks to display</p>
+</div>
+<table th:if="${!tasks.isEmpty()}" style="border-collapse: collapse;">
+```
+
+We have of course done the same thing with completed-tasks.html as we did with index.html, just with different message.
+

@@ -70,7 +70,7 @@ public class TaskController {
         return "task/add-task";
     }
 
-    @GetMapping("taskArchive")
+    @GetMapping("/taskArchive")
     public String taskArchive(Model theModel){
 
         List<Task> tasks = taskService.loadCompletedTasksFromUser();
@@ -78,5 +78,17 @@ public class TaskController {
         theModel.addAttribute("tasks", tasks);
 
         return "task/completed-tasks";
+    }
+
+    @GetMapping("/bringBackTask")
+    public String bringBackTask(@RequestParam("taskId") int theId){
+
+        Task theTask = taskService.findTask(theId);
+
+        theTask.setCompleted(false);
+
+        taskService.save(theTask);
+
+        return "redirect:/task/taskArchive";
     }
 }

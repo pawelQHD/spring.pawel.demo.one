@@ -3,7 +3,7 @@
                 xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Self Test One</title>
+    <title>To-Do</title>
     <style>
         th, td{
             padding: 2px;
@@ -21,7 +21,7 @@
     </style>
 </head>
 <body>
-<h3>Welcome to these humble beginnings</h3>
+<h3>To-do Tracking app</h3>
 <hr>
 <div class="button-fix">
     <a th:href="@{/task/addTask}" >
@@ -34,8 +34,11 @@
         <button type="button">Users</button>
     </a>
 </div>
+<div th:if="${tasks.isEmpty()}">
+    <p>No pending tasks. Click on "Add task" to stay organised</p>
+</div>
+<div th:if="${!tasks.isEmpty()}">
 <br>
-<div>
 <table style="border-collapse: collapse;">
     <thead>
     <tr>
