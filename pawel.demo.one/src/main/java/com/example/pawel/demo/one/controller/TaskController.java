@@ -91,4 +91,12 @@ public class TaskController {
 
         return "redirect:/task/taskArchive";
     }
+
+    @GetMapping("/deleteTask")
+    public String deleteTask(@RequestParam("taskId") int theId){
+
+        taskService.delete(theId);
+
+        return "redirect:/task/taskArchive";
+    }
 }

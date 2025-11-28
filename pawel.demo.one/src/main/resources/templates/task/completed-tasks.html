@@ -49,7 +49,8 @@
                 <button type="button">Bring Back</button>
             </a>
 
-            <a th:href="@{/task/deleteTask(taskId=${tempTask.id})}">
+            <a th:href="@{/task/deleteTask(taskId=${tempTask.id})}"
+                onclick="if(!(confirm('Are you sure you want to permanently delete this task?'))) return false">
                 <button type="button">Delete</button>
             </a>
         </td>

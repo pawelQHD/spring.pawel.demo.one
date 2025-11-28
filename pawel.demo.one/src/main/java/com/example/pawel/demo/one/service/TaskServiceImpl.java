@@ -78,5 +78,20 @@ public class TaskServiceImpl implements TaskService{
         return theTask;
     }
 
+    @Override
+    public void delete(int theId) {
 
+        Optional<Task> result = taskRepository.findById(theId);
+
+        Task theTask = null;
+
+        if(result.isPresent()){
+            theTask = result.get();
+        } else {
+            throw new RuntimeException("Did not find employee id - " + theId);
+        }
+
+        taskRepository.delete(theTask);
+
+    }
 }

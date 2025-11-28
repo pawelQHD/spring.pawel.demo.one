@@ -13,4 +13,6 @@ public interface TaskService {
     List<Task> loadActiveTasksFromUser();
 
     Task findTask(int theId);
+
+    void delete(int theId);
 }

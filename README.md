@@ -1739,3 +1739,61 @@ When there are pending tasks, we are hiding the message and displaying the tasks
 
 We have of course done the same thing with completed-tasks.html as we did with index.html, just with different message.
 
+### Deleting tasks
+
+The last major function to add for our tasks is permanently deleting the tasks from our database.
+
+```java
+    void delete(int theId);
+```
+
+The above code needs to be added to TaskService.
+
+```java
+    @Override
+    public void delete(int theId) {
+
+        Optional<Task> result = taskRepository.findById(theId);
+
+        Task theTask = null;
+
+        if(result.isPresent()){
+            theTask = result.get();
+        } else {
+            throw new RuntimeException("Did not find employee id - " + theId);
+        }
+
+        taskRepository.delete(theTask);
+
+    }
+```
+
+Implementation of the delete method is very simple, and it's very similar to the code we have written to bring the task back.
+
+```java
+    @GetMapping("/deleteTask")
+    public String deleteTask(@RequestParam("taskId") int theId){
+
+        taskService.delete(theId);
+
+        return "redirect:/task/taskArchive";
+    }
+```
+
+The mapping for the TaskController is very simple. We go directly into deleting of the task.
+
+```html
+            <a th:href="@{/task/deleteTask(taskId=${tempTask.id})}"
+                onclick="if(!(confirm('Are you sure you want to permanently delete this task?'))) return false">
+                <button type="button">Delete</button>
+            </a>
+```
+
+The above code is not needed to make this button work. However, it's a nice to have feature.
+
+We are simply asking the user if they are sure they want to delete the task before the task gets deleted.
+
+With this change we have completed our main task page. There will be no major features added to this page.
+
+However, there might be some bug fixes or small improvements as I come across them.
+
