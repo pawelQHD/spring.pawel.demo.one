@@ -30,7 +30,7 @@
     <a th:href="@{/task/taskArchive}" >
         <button type="button">Completed Tasks</button>
     </a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/userList}" >
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/user/userList}" >
         <button type="button">Users</button>
     </a>
 </div>

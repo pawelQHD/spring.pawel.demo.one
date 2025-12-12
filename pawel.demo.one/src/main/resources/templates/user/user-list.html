@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+    <style>
+        th, td{
+            padding: 2px;
+            border: 1px solid black;
+        }
+        td a{
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h3>List Of Users</h3>
+<hr>
+
+<table style="border-collapse: collapse;">
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Enabled</th>
+        <th>Created At</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tempUser : ${users}">
+        <td th:text="${tempUser.userName}"/>
+        <td th:text="${tempUser.email}"/>
+        <td th:text="${tempUser.enabled}"/>
+        <td th:text="${tempUser.createdAt}"/>
+        <td>
+            <a th:href="@{/user/disableEnableUser(userId=${tempUser.id})}">
+                <button type="button">Disable/Enable</button>
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<hr>
+<a th:href="@{/}">
+    <button type="button">Back</button>
+</a>
+</body>
+</html>

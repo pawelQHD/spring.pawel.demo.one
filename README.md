@@ -1797,3 +1797,170 @@ With this change we have completed our main task page. There will be no major fe
 
 However, there might be some bug fixes or small improvements as I come across them.
 
+### Displaying User list for Admins
+
+We want to display all the users that are signed up to our app. Only admins are able to view all users.
+
+To get started I decided to split the code for users into the UserController:
+
+```java
+@Controller
+@RequestMapping("/user")
+public class UserController {
+
+    UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("/userList")
+    public String userList(Model theModel){
+
+        List<User> listOfUsers = userService.loadUsers();
+
+        theModel.addAttribute("users", listOfUsers);
+
+        return "user/user-list";
+    }
+
+    @GetMapping("/disableEnableUser")
+    public String enableDisableUser(@RequestParam("userId") int theId, Model theModel){
+
+        User theUser = userService.findById(theId);
+
+        if(theUser.isEnabled()){
+            theUser.setEnabled(false);
+        } else {
+            theUser.setEnabled(true);
+        }
+
+        userService.update(theUser);
+
+        return "redirect:/user/userList";
+    }
+}
+```
+
+The above code shows us two mappings. One is simply there to display user list.
+
+The other is to switch the user between enabled and disabled at a press of a button.
+
+```java
+public interface UserService {
+
+    public User findByUserName(String userName);
+
+    void save(User user);
+
+    List<User> loadUsers();
+
+    User findById(int theId);
+
+    void update(User theUser);
+}
+```
+
+The above code has three extra methods: LoadUsers, findById and update. They are necessary in order to display and update out list.
+
+Below is the implementation of these methods inside UserServiceImpl:
+
+```java
+    @Override
+    public List<User> loadUsers() {
+
+        return userRepository.findAll();
+    }
+
+    @Override
+    public User findById(int theId) {
+
+        Optional<User> optionalResult = userRepository.findById(theId);
+
+        User theUser = null;
+
+        if(optionalResult.isPresent()){
+            theUser = optionalResult.get();
+        } else {
+            new RuntimeException("Could not find User with the id: " + theId);
+        }
+
+        return theUser;
+    }
+
+    @Override
+    public void update(User theUser) {
+
+        userRepository.save(theUser);
+    }
+```
+
+Loading users is simple, we just find all the users and display them.
+
+Finding users by id is similar to what we have done with task. This one will be used when we pass id via URL.
+
+Update method simply saves any changes we have done to the user. We already have save method.
+
+However, I couldn't use this one as it does important work of setting new users such as setting the date of creation and encrypting the password.
+
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+    <style>
+        th, td{
+            padding: 2px;
+            border: 1px solid black;
+        }
+        td a{
+            display: inline-block;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h3>List Of Users</h3>
+<hr>
+
+<table style="border-collapse: collapse;">
+    <thead>
+    <tr>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Enabled</th>
+        <th>Created At</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tempUser : ${users}">
+        <td th:text="${tempUser.userName}"/>
+        <td th:text="${tempUser.email}"/>
+        <td th:text="${tempUser.enabled}"/>
+        <td th:text="${tempUser.createdAt}"/>
+        <td>
+            <a th:href="@{/user/disableEnableUser(userId=${tempUser.id})}">
+                <button type="button">Disable/Enable</button>
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<hr>
+<a th:href="@{/}">
+    <button type="button">Back</button>
+</a>
+</body>
+</html>
+```
+
+The above code is the updated HTML class that displays the list of users. Before it was just an empty HTML page with a back button.
+
+We do similar thing to the task where we simply display relevant information.
+
+We only have one button to enable or disable the user. When the user is disabled they are not able to log in.
+

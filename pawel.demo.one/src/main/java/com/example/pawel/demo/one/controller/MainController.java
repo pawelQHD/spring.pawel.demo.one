@@ -22,9 +22,9 @@ public class MainController {
     @GetMapping("/")
     public String mainHomepage(Model theModel){
 
-        List<Task> userList = taskService.loadActiveTasksFromUser();
+        List<Task> taskList = taskService.loadActiveTasksFromUser();
 
-        theModel.addAttribute("tasks", userList);
+        theModel.addAttribute("tasks", taskList);
 
         return "index.html";
     }
@@ -33,11 +33,5 @@ public class MainController {
     public String myLoginPage(){
 
         return "login-page.html";
-    }
-
-    @GetMapping("/userList")
-    public String userList(){
-
-        return "user-list.html";
     }
 }

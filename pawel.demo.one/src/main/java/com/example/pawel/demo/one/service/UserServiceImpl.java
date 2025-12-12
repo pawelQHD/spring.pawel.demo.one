@@ -9,6 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -47,5 +49,33 @@ public class UserServiceImpl implements UserService{
 
         userRepository.save(user);
         authorityRepository.save(authority);
+    }
+
+    @Override
+    public List<User> loadUsers() {
+
+        return userRepository.findAll();
+    }
+
+    @Override
+    public User findById(int theId) {
+
+        Optional<User> optionalResult = userRepository.findById(theId);
+
+        User theUser = null;
+
+        if(optionalResult.isPresent()){
+            theUser = optionalResult.get();
+        } else {
+            new RuntimeException("Could not find User with the id: " + theId);
+        }
+
+        return theUser;
+    }
+
+    @Override
+    public void update(User theUser) {
+
+        userRepository.save(theUser);
     }
 }
